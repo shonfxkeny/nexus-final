@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="app-header dashboard-header">
+            <h1>NEXUS DASHBOARD</h1>
+            <div class="account-info">
+                <span id="account-balance">$0.00</span>
+                <select id="account-type">
+                    <option value="demo">Demo</option>
+                    <option value="real">Real</option>
+                </select>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="card controls-card">
+                <h2>SESSION GUARDIAN</h2>
+                <div class="controls-grid">
+                    <div class="input-group">
+                        <label for="profit-target">Profit Target ($)</label>
+                        <input type="number" id="profit-target" value="10">
+                    </div>
+                    <div class="input-group">
+                        <label for="loss-limit">Loss Limit ($)</label>
+                        <input type="number" id="loss-limit" value="5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bot-selection-card">
+                <h2>HYDRA ENGINE</h2>
+                <div class="bot-grid">
+                    <div class="bot-card" data-bot="chronos">
+                        <h3>Chronos</h3>
+                        <p>High-frequency scalper for 1s indices.</p>
+                    </div>
+                    <div class="bot-card" data-bot="cipher">
+                        <h3>Cipher</h3>
+                        <p>Statistical analysis for digit-based trades.</p>
+                    </div>
+                    <div class="bot-card" data-bot="vector">
+                        <h3>Vector</h3>
+                        <p>Momentum rider for short-term trends.</p>
+                    </div>
+                    <div class="bot-card" data-bot="erebos">
+                        <h3>Erebos</h3>
+                        <p>Contrarian strategy for high volatility.</p>
+                    </div>
+                </div>
+                <button id="start-bot-btn" class="btn-start" disabled>SELECT A BOT</button>
+                <button id="stop-bot-btn" class="btn-stop" style="display: none;">DEACTIVATE BOT</button>
+            </div>
+
+            <div class="card log-card">
+                <h2>SYSTEM LOG</h2>
+                <div id="log-display" class="log-display">
+                    <div class="log-message">Welcome, Commander. Please connect to your Deriv account to begin.</div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="dashboard.js"></script>
+</body>
+</html>

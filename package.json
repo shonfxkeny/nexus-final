@@ -1,0 +1,9 @@
+{
+  "name": "nexus-final",
+  "version": "1.0.0",
+  "description": "The definitive Deriv Trading App.",
+  "dependencies": {
+    "node-fetch": "^2.6.9",
+    "dotenv": "^16.3.1"
+  }
+}
