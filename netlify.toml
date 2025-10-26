@@ -1,10 +1,3 @@
 [build]
-  # We tell Netlify that our website files are in the main directory.
   publish = "."
   functions = "netlify/functions"
-
-[[redirects]]
-  # This rule correctly handles the Deriv OAuth callback.
-  from = "/oauth-callback"
-  to = "/.netlify/functions/auth-callback"
-  status = 200
