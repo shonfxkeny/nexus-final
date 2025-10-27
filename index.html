@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Command Center</title>
+    <title>Nexus Authorization</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
@@ -11,22 +11,24 @@
     <div class="container login-container">
         <header class="app-header">
             <h1>NEXUS COMMAND CENTER</h1>
-            <p>Welcome to Shondripper.xyz</p>
+            <p>Master Key Authorization</p>
         </header>
 
         <main class="main-content">
             <div class="card login-card">
+                <div class="input-group">
+                    <label for="api-token">Deriv API Token</label>
+                    <input type="password" id="api-token" placeholder="Enter your token here">
+                </div>
+                <button id="auth-btn" class="btn-start">AUTHORIZE & ENTER</button>
                 <p class="login-instructions">
-                    To begin, you must connect your Deriv account. This will securely authorize the app to trade on your behalf.
+                    <br>
+                    Go to Deriv → Settings → API Token. Create a token with "Read" and "Trade" scopes. Copy it and paste it above.
                 </p>
-                <button id="deriv-oauth-btn">
-                    <img src="https://logotyp.us/files/deriv.svg" alt="Deriv Logo">
-                    Connect with Deriv
-                </button>
-                 <p id="message-area" class="message-area"></p>
+                <p id="message-area" class="message-area"></p>
             </div>
         </main>
     </div>
     <script src="login.js"></script>
 </body>
-</html>
+        </html>
