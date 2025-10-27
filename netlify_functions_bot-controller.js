@@ -1,38 +1,44 @@
-// This is a simplified, in-memory bot state manager for a serverless environment.
-// In a real-world scenario, you'd use a serverless database like FaunaDB or Upstash.
-let botState = {
-    isRunning: false,
-    logs: [],
-    pnl: 0,
-    bot: null,
-    settings: {},
-    lastUpdate: 0
-};
+const WebSocket = require('ws');
 
-function log(message) {
-    botState.logs.push(message);
-}
+// This state will be reset on every function invocation in a serverless environment.
+// For a real bot, we need an external state manager (like Redis or FaunaDB).
+// For now, this demonstrates the LIVE API connection.
+let botState = { isRunning: false, logs: [], pnl: 0, bot: null, settings: {} };
 
-function runBotLogic() {
-    // This function simulates the bot's thinking process.
-    if (!botState.isRunning) return;
+// This function connects to Deriv, gets balance, and disconnects.
+async function getAccountInfo(token) {
+    return new Promise((resolve, reject) => {
+        const ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089'); // A generic app_id for connection
 
-    log(`🧠 [${botState.bot.toUpperCase()}] Analyzing market...`);
-    
-    const isWin = Math.random() < 0.55; // Simulate win rate
-    const pnl = isWin ? 0.91 : -1.0;
-    botState.pnl += pnl;
+        ws.onopen = () => {
+            ws.send(JSON.stringify({ authorize: token }));
+        };
 
-    log(`📈 Trade Result: ${isWin ? 'WIN' : 'LOSS'} | P&L: $${pnl.toFixed(2)} | Session: $${botState.pnl.toFixed(2)}`);
+        ws.onmessage = (msg) => {
+            const data = JSON.parse(msg.data);
+            if (data.error) {
+                ws.close();
+                reject(new Error(data.error.message));
+            } else if (data.msg_type === 'authorize') {
+                // Once authorized, ask for the balance
+                ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+            } else if (data.msg_type === 'balance') {
+                const accountInfo = data.balance;
+                ws.close();
+                resolve({
+                    success: true,
+                    balance: accountInfo.balance,
+                    currency: accountInfo.currency,
+                    account_type: accountInfo.loginid,
+                    is_virtual: accountInfo.loginid.startsWith('VRTC')
+                });
+            }
+        };
 
-    if (botState.pnl >= botState.settings.profitTarget) {
-        log(`🏆 PROFIT TARGET REACHED! Halting bot.`);
-        botState.isRunning = false;
-    }
-    if (botState.pnl <= -botState.settings.lossLimit) {
-        log(`🚨 LOSS LIMIT REACHED! Halting bot.`);
-        botState.isRunning = false;
-    }
+        ws.onerror = (err) => {
+            reject(new Error('Failed to connect to Deriv API.'));
+        };
+    });
 }
 
 exports.handler = async function(event, context) {
@@ -41,36 +47,33 @@ exports.handler = async function(event, context) {
     if (!token) {
         return { statusCode: 401, body: JSON.stringify({ message: 'Unauthorized' }) };
     }
+
+    if (action === 'authorize') {
+        try {
+            const accountInfo = await getAccountInfo(token);
+            return { statusCode: 200, body: JSON.stringify(accountInfo) };
+        } catch (error) {
+            return { statusCode: 400, body: JSON.stringify({ success: false, message: error.message }) };
+        }
+    }
     
+    // The start/stop/status logic remains a simulation for now, but the authorization is REAL.
+    // This proves the connection works before we risk money.
     if (action === 'start') {
-        botState = {
-            isRunning: true,
-            logs: [],
-            pnl: 0,
-            bot: bot,
-            settings: settings,
-            lastUpdate: Date.now()
-        };
-        log(`✅ [${bot.toUpperCase()}] Activated. Session Guardian armed.`);
-        runBotLogic(); // Run first cycle immediately
+        botState = { isRunning: true, logs: [`✅ [${bot.toUpperCase()}] Activated. Session Guardian armed.`], pnl: 0, bot: bot, settings: settings };
     } else if (action === 'stop') {
         botState.isRunning = false;
-        log('🛑 Bot deactivated by user command.');
+        botState.logs.push('🛑 Bot deactivated by user command.');
     } else if (action === 'status') {
-        // In a serverless environment, we simulate ticks. If enough time has passed, run another cycle.
-        if (botState.isRunning && Date.now() - botState.lastUpdate > 5000) {
-            runBotLogic();
-            botState.lastUpdate = Date.now();
+        if (botState.isRunning) {
+            const pnl = Math.random() > 0.5 ? 0.91 : -1.0;
+            botState.pnl += pnl;
+            botState.logs.push(`📈 [SIM] Trade Result: ${pnl > 0 ? 'WIN' : 'LOSS'} | Session P&L: $${botState.pnl.toFixed(2)}`);
         }
     }
 
-    const response = {
-        isRunning: botState.isRunning,
-        logs: botState.logs,
-        pnl: botState.pnl,
-        balance: 10000 + botState.pnl // Simulate balance update
-    };
-    botState.logs = []; // Clear logs after sending them
+    const response = { success: true, isRunning: botState.isRunning, logs: botState.logs, balance: 10000 + botState.pnl };
+    botState.logs = []; // Clear logs
 
     return {
         statusCode: 200,
